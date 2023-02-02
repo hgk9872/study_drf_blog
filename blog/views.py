@@ -1,5 +1,7 @@
 from rest_framework import generics
 from rest_framework.decorators import api_view, action
+from rest_framework.generics import RetrieveAPIView
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -50,3 +52,16 @@ class PostViewSet(ModelViewSet):
         instance.save(update_fields=['is_public'])  # 해당 필드만 업데이트
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class PostDetailAPIView(RetrieveAPIView):
+    queryset = Post.objects.all()
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'blog/post_detail.html'
+
+    def retrieve(self, request, *args, **kwargs):
+        post = self.get_object()
+        serializer = PostSerializer(post)
+        return Response({
+            'post': serializer.data,
+        })
