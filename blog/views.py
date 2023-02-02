@@ -1,5 +1,5 @@
 from rest_framework import generics
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -35,3 +35,18 @@ def public_post_list(request):
 class PostViewSet(ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+
+    @action(detail=False, methods=['get'])
+    def public(self, request):
+        qs = self.get_queryset().filter(is_public=True)
+        serializer = self.get_serializer(qs, many=True)
+        # serializer = PostSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['patch'])
+    def set_public(self, request, pk):
+        instance = self.get_object()
+        instance.is_public = True
+        instance.save(update_fields=['is_public'])  # 해당 필드만 업데이트
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
